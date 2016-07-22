@@ -5,14 +5,17 @@
 
 int main(int argc, char**argv){
 
-	//const int data_size = 20;
-	//const int work_size = 5;
+	const int data_size = 0;
+	const int data_bytes = data_size * sizeof(int);
+	const int work_size = 5;
 
 	/*Fill data*/
 	int *hInputData = NULL;
-	hInputData = (int*)malloc();
+	hInputData = (int*)malloc(data_bytes);
 
-	int *hOutputData = (int*)malloc();
+	//if adapt to jpeg, fill in input here
+
+	int *hOutputData = (int*)malloc(data_bytes);
 
 	/*Status variable for checks*/
 	cl_int status;
@@ -39,25 +42,25 @@ int main(int argc, char**argv){
 
 	/*Create buffer for input data*/
 	cl_mem bufInputData;
-	bufInputData = clCreateBuffer(context, CL_MEM_READ_ONLY, , NULL, &status);
+	bufInputData = clCreateBuffer(context, CL_MEM_READ_ONLY, data_bytes, NULL, &status);
 	check(status);
 
 	/*Create buffer for output data*/
 	cl_mem bufOutputData;
-	bufOutputData = clCreateBuffer(context, CL_MEM_WRITE_ONLY, , NULL, &status);
+	bufOutputData = clCreateBuffer(context, CL_MEM_WRITE_ONLY, data_bytes, NULL, &status);
 	check(status);
 
 	/*Write input data to device*/
-	status = clEnqueueWriteBuffer(cmdQueue, bufInputData, CL_TRUE, 0, , hInputData, 0, NULL, NULL);
+	status = clEnqueueWriteBuffer(cmdQueue, bufInputData, CL_TRUE, 0, data_bytes, hInputData, 0, NULL, NULL);
 	check(status);
 
 	/*Initialize output histo*/
 	int zero = 0;
-	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(int), 0, , 0, NULL, NULL);
+	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(int), 0, data_bytes, 0, NULL, NULL);
 	check(status);
 
 	/*Create Prog*/
-	char *programSource = readFile(""); //find readfile
+	char *programSource = readFile("tea.cl"); //find readfile
 	size_t programSourceLen = strlen(programSource);
 	cl_program program = clCreateProgramWithSource(context, 1, (const char**)&programSource, &programSourceLen, &status);
 	check(status);
@@ -70,7 +73,7 @@ int main(int argc, char**argv){
 
 	/*Create Kernel*/
 	cl_kernel kernel; 
-	kernel = clCreateKernel(program, "", &status);
+	kernel = clCreateKernel(program, "tea.cl", &status);
 	check(status);
 
 	/*Set kernel arguments (in, out, num)*/
@@ -81,10 +84,10 @@ int main(int argc, char**argv){
 
 	/*Define global and work group size*/
 	size_t globalWorkSize[1];
-	globalWorkSize[0] = DATA_SIZE;
+	globalWorkSize[0] = data_size;
 
 	size_t localWorkSize[1];
-	localWorkSize[0] = 4;
+	localWorkSize[0] = 16;
 
 	/*Enqueue Kernel*/
 	status = clEnqueueNDRangeKernel(cmdQueue, kernel, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
