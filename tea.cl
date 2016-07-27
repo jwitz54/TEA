@@ -1,6 +1,6 @@
 __kernel
-void tea (__global long *inputData
-		  __global long *outputData
+void tea (__global long *inputData,
+		  __global long *outputData,
 		  __global long *key) {
 
 	int gid = get_global_id(0);
@@ -15,18 +15,18 @@ void tea (__global long *inputData
 
 	//barrier(CLK_LOCAL_MEM_FENCE);
 
-	threadData = inpudData[gid]; // future - use shmem
+	int threadData = inputData[gid]; // future - use shmem
 	int y = (threadData >> 32) & 0xFFFF;
 	int z = threadData & 0xFFFF;
 
 	long sum = 0;
-	delta = 0x9e3779b9; //put in shmem
-	n = 32;
+	long delta = 0x9e3779b9; //put in shmem
+	int n = 32;
 
 	while (n-- > 0){
 		sum += delta; //(op in shmem?)
-		y += ((z << 4) + key[0]) ^ (z + sum) ^ ((z >> 5) + k[1]);
-		z += ((y << 4) + key[2]) ^ (y + sum) ^ ((y >> 5) + k[3]);
+		y += ((z << 4) + key[0]) ^ (z + sum) ^ ((z >> 5) + key[1]);
+		z += ((y << 4) + key[2]) ^ (y + sum) ^ ((y >> 5) + key[3]);
 	}
 
 	outputData[gid] = z + (y << 32);

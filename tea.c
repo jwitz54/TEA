@@ -5,17 +5,26 @@
 
 int main(int argc, char**argv){
 
-	const int data_size = 0;
+	const int data_size = 2;
 	const int data_bytes = data_size * sizeof(int);
 	const int work_size = 5;
+	const int key_size = 128;
+	const int key_bytes = key_size/8;
 
 	/*Fill data*/
-	int *hInputData = NULL;
-	hInputData = (int*)malloc(data_bytes);
+	int *hInputData = (int*)malloc(data_bytes);
+
+	/* Assignments for testing*/
+	hInputData[0] = 1;
+	hInputData[1] = 1;
 
 	//if adapt to jpeg, fill in input here
 
 	int *hOutputData = (int*)malloc(data_bytes);
+
+	/*Write Key*/
+	int *hKey = (int*)malloc(key_bytes);
+	hKey = 1;
 
 	/*Status variable for checks*/
 	cl_int status;
@@ -27,7 +36,7 @@ int main(int argc, char**argv){
 	
 	/*Find Device*/
 	cl_device_id device;
-	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL); // gpu if on gpu
+	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL); // GPU if on gpu
 	check(status);
 
 	/*Create Context*/
@@ -48,6 +57,11 @@ int main(int argc, char**argv){
 	/*Create buffer for output data*/
 	cl_mem bufOutputData;
 	bufOutputData = clCreateBuffer(context, CL_MEM_WRITE_ONLY, data_bytes, NULL, &status);
+	check(status);
+
+	/*Create key buffer*/
+	cl_mem bufKey;
+	bufKey = clCreateBuffer(context, CL_MEM_READ_ONLY, key_bytes, NULL, &status);
 	check(status);
 
 	/*Write input data to device*/
@@ -73,13 +87,15 @@ int main(int argc, char**argv){
 
 	/*Create Kernel*/
 	cl_kernel kernel; 
-	kernel = clCreateKernel(program, "tea.cl", &status);
+	kernel = clCreateKernel(program, "tea", &status);
 	check(status);
 
 	/*Set kernel arguments (in, out, num)*/
 	//int elements = DATA_SIZE;
 
 	status  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufInputData);
+	status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufOutputData);
+	status |= clSetKernelArg(kernel, 2, key_bytes, &bufKey);  
 	check(status);
 
 	/*Define global and work group size*/
