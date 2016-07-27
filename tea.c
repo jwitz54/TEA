@@ -93,7 +93,7 @@ int main(int argc, char**argv){
 	status = clEnqueueNDRangeKernel(cmdQueue, kernel, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
 
 	/*Read output*/
-	status = clEnqueueReadBuffer(cmdQueue, bufOutputData, CL_TRUE, 0, sizeof(int) * DATA_SIZE, hOutputData, 0, NULL, NULL);
+	status = clEnqueueReadBuffer(cmdQueue, bufOutputData, CL_TRUE, 0, data_bytes, hOutputData, 0, NULL, NULL);
 	check(status);
 
 	printf("Result: %i \n", hOutputData[0]);
