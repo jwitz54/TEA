@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <CL/cl.h>
 
 #include "utils.c"
@@ -15,7 +16,7 @@ int main(int argc, char**argv){
 	long *hInputData = (long*)malloc(data_bytes);
 
 	/* Assignments for testing*/
-	hInputData[0] = 131074;
+	hInputData[0] = 0x0000000200000002; //
 
 	//if adapt to jpeg, fill in input here
 
@@ -117,8 +118,33 @@ int main(int argc, char**argv){
 	/*Read output*/
 	status = clEnqueueReadBuffer(cmdQueue, bufOutputData, CL_TRUE, 0, data_bytes, hOutputData, 0, NULL, NULL);
 	check(status);
-
+	printf("sizeof long: %i\n", sizeof(long));
 	printf("Result: %i \n", hOutputData[0]);
 
 	return (0);	
+}
+
+//REFERENCE CALCS TAKEN FROM https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm
+void encrypt (uint32_t* v, uint32_t* k) {
+    uint32_t v0=v[0], v1=v[1], sum=0, i;           /* set up */
+    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
+    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */
+    for (i=0; i < 32; i++) {                       /* basic cycle start */
+        sum += delta;
+        v0 += ((v1<<4) + k0) ^ (v1 + sum) ^ ((v1>>5) + k1);
+        v1 += ((v0<<4) + k2) ^ (v0 + sum) ^ ((v0>>5) + k3);
+    }                                              /* end cycle */
+    v[0]=v0; v[1]=v1;
+}
+
+void decrypt (uint32_t* v, uint32_t* k) {
+    uint32_t v0=v[0], v1=v[1], sum=0xC6EF3720, i;  /* set up */
+    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
+    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */
+    for (i=0; i<32; i++) {                         /* basic cycle start */
+        v1 -= ((v0<<4) + k2) ^ (v0 + sum) ^ ((v0>>5) + k3);
+        v0 -= ((v1<<4) + k0) ^ (v1 + sum) ^ ((v1>>5) + k1);
+        sum -= delta;
+    }                                              /* end cycle */
+    v[0]=v0; v[1]=v1;
 }

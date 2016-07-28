@@ -26,7 +26,7 @@ void tea(__global long *inputData,
 	int z = threadData[1];
 
 	long sum = 0;
-	long delta = 0x9e3779b9; //put in shmem
+	long delta = 0x9e3779b9; //ARBITRARY, put in shmem
 	int n = 32;
 
 	if (gid == 0){
