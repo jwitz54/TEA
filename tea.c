@@ -6,25 +6,27 @@
 int main(int argc, char**argv){
 
 	const int data_size = 2;
-	const int data_bytes = data_size * sizeof(int);
+	const int data_bytes = data_size * sizeof(long);
 	const int work_size = 5;
-	const int key_size = 128;
-	const int key_bytes = key_size/8;
+	const int key_size = 4;
+	const int key_bytes = key_size * sizeof(long);
 
 	/*Fill data*/
-	int *hInputData = (int*)malloc(data_bytes);
+	long *hInputData = (long*)malloc(data_bytes);
 
 	/* Assignments for testing*/
-	hInputData[0] = 1;
-	hInputData[1] = 1;
+	hInputData[0] = 131074;
 
 	//if adapt to jpeg, fill in input here
 
-	int *hOutputData = (int*)malloc(data_bytes);
+	long *hOutputData = (long*)malloc(data_bytes);
 
 	/*Write Key*/
-	int *hKey = (int*)malloc(key_bytes);
-	hKey = 1;
+	long *hKey = (long*)malloc(key_bytes); //may need to be bigger!
+	hKey[0] = 1;
+	hKey[1] = 1;
+	hKey[2] = 1;
+	hKey[3] = 1;
 
 	/*Status variable for checks*/
 	cl_int status;
@@ -36,7 +38,7 @@ int main(int argc, char**argv){
 	
 	/*Find Device*/
 	cl_device_id device;
-	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL); // GPU if on gpu
+	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &device, NULL); // GPU if on gpu
 	check(status);
 
 	/*Create Context*/
@@ -46,7 +48,7 @@ int main(int argc, char**argv){
 
 	/*Create Command Queue*/
 	cl_command_queue cmdQueue;
-	cmdQueue = clCreateCommandQueueWithProperties(context, device, 0, &status);
+	cmdQueue = clCreateCommandQueueWithProperties(context, device, NULL, &status);
 	check(status);
 
 	/*Create buffer for input data*/
@@ -68,13 +70,17 @@ int main(int argc, char**argv){
 	status = clEnqueueWriteBuffer(cmdQueue, bufInputData, CL_TRUE, 0, data_bytes, hInputData, 0, NULL, NULL);
 	check(status);
 
-	/*Initialize output histo*/
+	/*Initialize output*/
 	int zero = 0;
-	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(int), 0, data_bytes, 0, NULL, NULL);
+	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(long), 0, data_bytes, 0, NULL, NULL);
+	check(status);
+
+	/*Write key to device*/
+	status = clEnqueueWriteBuffer(cmdQueue, bufKey, CL_TRUE, 0, data_bytes, hKey, 0, NULL, NULL);
 	check(status);
 
 	/*Create Prog*/
-	char *programSource = readFile("tea.cl"); //find readfile
+	char *programSource = readFile("tea.cl");
 	size_t programSourceLen = strlen(programSource);
 	cl_program program = clCreateProgramWithSource(context, 1, (const char**)&programSource, &programSourceLen, &status);
 	check(status);
@@ -95,7 +101,7 @@ int main(int argc, char**argv){
 
 	status  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufInputData);
 	status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufOutputData);
-	status |= clSetKernelArg(kernel, 2, key_bytes, &bufKey);  
+	status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &bufKey);  
 	check(status);
 
 	/*Define global and work group size*/
@@ -103,7 +109,7 @@ int main(int argc, char**argv){
 	globalWorkSize[0] = data_size;
 
 	size_t localWorkSize[1];
-	localWorkSize[0] = 16;
+	localWorkSize[0] = 1;
 
 	/*Enqueue Kernel*/
 	status = clEnqueueNDRangeKernel(cmdQueue, kernel, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
