@@ -29,11 +29,7 @@ void tea(__global unsigned long *inputData,
 	unsigned long delta = 0x9e3779b9; //ARBITRARY, put in shmem
 	int n = 32;
 
-	if (gid == 0){
-		printf("Thread data is: %i , %i \n", y, z);
-		printf("Key0 is: %i\n", key[0]);
-	}
-
+	printf("going into thread encryption v0: %i v1: %i k0: %lu k1: %lu..\n", y, z, key[0], key[1]);
 	while (n-- > 0){
 		sum += delta; //(op in shmem?)
 		y += ((z << 4) + key[0]) ^ (z + sum) ^ ((z >> 5) + key[1]);
