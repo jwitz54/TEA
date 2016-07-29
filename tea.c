@@ -10,7 +10,7 @@ void decrypt (uint32_t* v, uint32_t* k);
 
 int main(int argc, char**argv){
 
-	const int data_size = 2;
+	const int data_size = 1;
 	const int data_bytes = data_size * sizeof(unsigned long);
 	const int work_size = 5;
 	const int key_size = 4;
@@ -36,10 +36,12 @@ int main(int argc, char**argv){
 	/*Perform Reference Calc*/
 
 	//Copy input data
-	uint32_t refData = (uint32_t*)malloc(data_bytes * 2); //Use * 2 because splitting into uints
-	uint32_t refKey = (uint32_t*)malloc(key_bytes);
+	uint32_t *refData = (uint32_t*)malloc(data_bytes * 2); //Use * 2 because splitting into uints
+	uint32_t *refKey = (uint32_t*)malloc(key_bytes);
 	*refKey = *hKey;
-	for (int i = 0; i < data_size; i++){
+
+	int i;
+	for (i = 0; i < data_size; i++){
 		refData[2 * i] = (hInputData[i] >> 32) & 0xFFFFFFFF;
 		refData[2 * i + 1] = hInputData[i] & 0xFFFFFFFF; 
 	}
@@ -135,8 +137,14 @@ int main(int argc, char**argv){
 	/*Read output*/
 	status = clEnqueueReadBuffer(cmdQueue, bufOutputData, CL_TRUE, 0, data_bytes, hOutputData, 0, NULL, NULL);
 	check(status);
-	printf("sizeof long: %i\n", sizeof(unsigned long));
-	printf("Result: %i \n", hOutputData[0]);
+
+	/*Check with ref calc*/
+	for (i = 0; i < data_size; i++){
+		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
+		if (hOutputData[i] != refDataC){
+			printf("mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+		}
+	}
 
 	return (0);	
 }
