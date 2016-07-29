@@ -4,30 +4,47 @@
 
 #include "utils.c"
 
+//Fcns for reference calc - see botton
+void encrypt (uint32_t* v, uint32_t* k);
+void decrypt (uint32_t* v, uint32_t* k);
+
 int main(int argc, char**argv){
 
 	const int data_size = 2;
-	const int data_bytes = data_size * sizeof(long);
+	const int data_bytes = data_size * sizeof(unsigned long);
 	const int work_size = 5;
 	const int key_size = 4;
-	const int key_bytes = key_size * sizeof(long);
+	const int key_bytes = key_size * sizeof(uint32_t);
 
 	/*Fill data*/
-	long *hInputData = (long*)malloc(data_bytes);
+	unsigned long *hInputData = (unsigned long*)malloc(data_bytes);
 
 	/* Assignments for testing*/
 	hInputData[0] = 0x0000000200000002; //
 
 	//if adapt to jpeg, fill in input here
 
-	long *hOutputData = (long*)malloc(data_bytes);
+	unsigned long *hOutputData = (unsigned long*)malloc(data_bytes);
 
 	/*Write Key*/
-	long *hKey = (long*)malloc(key_bytes); //may need to be bigger!
+	uint32_t *hKey = (uint32_t*)malloc(key_bytes); //may need to be bigger!
 	hKey[0] = 1;
 	hKey[1] = 1;
 	hKey[2] = 1;
 	hKey[3] = 1;
+
+	/*Perform Reference Calc*/
+
+	//Copy input data
+	uint32_t refData = (uint32_t*)malloc(data_bytes * 2); //Use * 2 because splitting into uints
+	uint32_t refKey = (uint32_t*)malloc(key_bytes);
+	*refKey = *hKey;
+	for (int i = 0; i < data_size; i++){
+		refData[2 * i] = (hInputData[i] >> 32) & 0xFFFFFFFF;
+		refData[2 * i + 1] = hInputData[i] & 0xFFFFFFFF; 
+	}
+
+	encrypt(refData, refKey);
 
 	/*Status variable for checks*/
 	cl_int status;
@@ -73,11 +90,11 @@ int main(int argc, char**argv){
 
 	/*Initialize output*/
 	int zero = 0;
-	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(long), 0, data_bytes, 0, NULL, NULL);
+	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(unsigned long), 0, data_bytes, 0, NULL, NULL);
 	check(status);
 
 	/*Write key to device*/
-	status = clEnqueueWriteBuffer(cmdQueue, bufKey, CL_TRUE, 0, data_bytes, hKey, 0, NULL, NULL);
+	status = clEnqueueWriteBuffer(cmdQueue, bufKey, CL_TRUE, 0, key_bytes, hKey, 0, NULL, NULL);
 	check(status);
 
 	/*Create Prog*/
@@ -118,7 +135,7 @@ int main(int argc, char**argv){
 	/*Read output*/
 	status = clEnqueueReadBuffer(cmdQueue, bufOutputData, CL_TRUE, 0, data_bytes, hOutputData, 0, NULL, NULL);
 	check(status);
-	printf("sizeof long: %i\n", sizeof(long));
+	printf("sizeof long: %i\n", sizeof(unsigned long));
 	printf("Result: %i \n", hOutputData[0]);
 
 	return (0);	

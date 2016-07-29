@@ -1,7 +1,7 @@
 __kernel
-void tea(__global long *inputData,
-		 __global long *outputData,
-		 __global long *key) {
+void tea(__global unsigned long *inputData,
+		 __global unsigned long *outputData,
+		 __global unsigned long *key) {
 
 	int gid = get_global_id(0);
 	int gsize = get_global_size(0);
@@ -18,15 +18,15 @@ void tea(__global long *inputData,
 	//barrier(CLK_LOCAL_MEM_FENCE);
 	//if (gid % 2 == 0){ // very inefficient - half threads doing nothing
 
-	int threadData[2];
-	threadData[0] = (inputData[gid] >> 32) & 0xFFFF;
-	threadData[1] = inputData[gid] & 0xFFFF;
+	unsigned int threadData[2];
+	threadData[0] = (inputData[gid] >> 32) & 0xFFFFFFFF;
+	threadData[1] = inputData[gid] & 0xFFFFFFFF;
 
-	int y = threadData[0];
-	int z = threadData[1];
+	unsigned int y = threadData[0];
+	unsigned int z = threadData[1];
 
-	long sum = 0;
-	long delta = 0x9e3779b9; //ARBITRARY, put in shmem
+	unsigned long sum = 0;
+	unsigned long delta = 0x9e3779b9; //ARBITRARY, put in shmem
 	int n = 32;
 
 	if (gid == 0){
@@ -40,6 +40,6 @@ void tea(__global long *inputData,
 		z += ((y << 4) + key[2]) ^ (y + sum) ^ ((y >> 5) + key[3]);
 	}
 
-	outputData[gid] = z + (y << 32);
+	outputData[gid] = (y << 32) + z;
 
 }
