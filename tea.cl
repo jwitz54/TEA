@@ -1,7 +1,7 @@
 __kernel
 void tea(__global unsigned long *inputData,
 		 __global unsigned long *outputData,
-		 __global unsigned long *key) {
+		 __global unsigned int  *key) {
 
 	int gid = get_global_id(0);
 	int gsize = get_global_size(0);
@@ -27,10 +27,10 @@ void tea(__global unsigned long *inputData,
 
 	unsigned long sum = 0;
 	unsigned long delta = 0x9e3779b9; //ARBITRARY, put in shmem
-	int n = 32;
+	int n;
 
-	printf("going into thread encryption v0: %i v1: %i k0: %lu k1: %lu..\n", y, z, key[0], key[1]);
-	while (n-- > 0){
+	//printf("going into thread encryption v0: %i v1: %i k0: %i k1: %i k2: %i..\n", y, z, key[0], key[1], key[2]);
+	for (n = 0; n < 32; n++){
 		sum += delta; //(op in shmem?)
 		y += ((z << 4) + key[0]) ^ (z + sum) ^ ((z >> 5) + key[1]);
 		z += ((y << 4) + key[2]) ^ (y + sum) ^ ((y >> 5) + key[3]);

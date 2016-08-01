@@ -14,38 +14,39 @@ int main(int argc, char**argv){
 	const int data_bytes = data_size * sizeof(unsigned long);
 	const int work_size = 5;
 	const int key_size = 4;
-	const int key_bytes = key_size * sizeof(uint32_t);
+	const int key_bytes = key_size * sizeof(int);
 
 	/*Fill data*/
 	unsigned long *hInputData = (unsigned long*)malloc(data_bytes);
 
 	/* Assignments for testing*/
-	hInputData[0] = 0x0000000200000002; //
+	hInputData[0] = 0x876575346435435346476587565443534; //
 
 	//if adapt to jpeg, fill in input here
 
 	unsigned long *hOutputData = (unsigned long*)malloc(data_bytes);
 
 	/*Write Key*/
-	uint32_t *hKey = (uint32_t*)malloc(key_bytes); //may need to be bigger!
-	hKey[0] = 1;
-	hKey[1] = 1;
-	hKey[2] = 1;
-	hKey[3] = 1;
+	int *hKey = (int*)malloc(key_bytes); //may need to be bigger!
+	hKey[0] = 43;
+	hKey[1] = 65645;
+	hKey[2] = 21;
+	hKey[3] = 54543;
 
 	/*Perform Reference Calc*/
-
 	//Copy input data
 	uint32_t *refData = (uint32_t*)malloc(data_bytes * 2); //Use * 2 because splitting into uints
 	uint32_t *refKey = (uint32_t*)malloc(key_bytes);
-	*refKey = *hKey;
+	refKey[0] = hKey[0];
+	refKey[1] = hKey[1];
+	refKey[2] = hKey[2];
+	refKey[3] = hKey[3];
 
 	int i;
 	for (i = 0; i < data_size; i++){
 		refData[2 * i] = (hInputData[i] >> 32) & 0xFFFFFFFF;
 		refData[2 * i + 1] = hInputData[i] & 0xFFFFFFFF; 
 	}
-
 	encrypt(refData, refKey);
 
 	/*Status variable for checks*/
@@ -139,13 +140,20 @@ int main(int argc, char**argv){
 	check(status);
 
 	/*Check with ref calc*/
+	int mismatch = 0;
 	for (i = 0; i < data_size; i++){
 		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
 		if (hOutputData[i] != refDataC){
 			printf("mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+			mismatch = 1;
 		}
 	}
 
+	if (mismatch == 0){
+		printf("Encryption Succesful!\n");
+	} else {
+		printf("Encryption Failed, See Above Mismatch\n");
+	}
 	return (0);	
 }
 
@@ -154,7 +162,7 @@ void encrypt (uint32_t* v, uint32_t* k) {
     uint32_t v0=v[0], v1=v[1], sum=0, i;           /* set up */
     uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
     uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */
-    printf("going into ref encryption v0: %i v1: %i k0: %i k1: %i..\n", v0, v1, k0, k1);
+    //printf("going into ref encryption v0: %i v1: %i k0: %i k1: %i k2: %i..\n", v0, v1, k0, k1, k2);
     for (i=0; i < 32; i++) {                       /* basic cycle start */
         sum += delta;
         v0 += ((v1<<4) + k0) ^ (v1 + sum) ^ ((v1>>5) + k1);
