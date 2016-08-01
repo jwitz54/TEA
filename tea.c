@@ -9,21 +9,38 @@ void encrypt (uint32_t* v, uint32_t* k);
 void decrypt (uint32_t* v, uint32_t* k);
 
 int main(int argc, char**argv){
+	/*Get file info*/
+	FILE *inputFile;
+	inputFile = fopen("jpeg-pic.jpg", "r+");
+	if (inputFile == NULL){
+		printf("Error: Could not open file\n");
+		fclose(inputFile);
+		return 1;
+	}
+	int num = fseek(inputFile, 0, SEEK_END); //point to end of file
+	int file_bytes = ftell(inputFile);
+	num = fseek(inputFile, 0, SEEK_SET); //point to beginning of file
+	
+	int longsInFile = file_bytes/(sizeof(unsigned long)) + 1;
 
-	const int data_size = 1;
-	const int data_bytes = data_size * sizeof(unsigned long);
-	const int work_size = 5;
+	/*Declare Constants Based on File*/
+	const int data_size = longsInFile;
+	const int data_bytes = file_bytes;
+	const int work_size = 5; //Due to change for optimization
 	const int key_size = 4;
 	const int key_bytes = key_size * sizeof(int);
 
-	/*Fill data*/
+	/*Fill Input Data*/
+
 	unsigned long *hInputData = (unsigned long*)malloc(data_bytes);
+	int i;
+	for(i = 0; i < data_size; i++){
+		unsigned long *buf;
+		fread(buf, sizeof(unsigned long), 1, inputFile);
+		hInputData[i] = *buf;
+	}
 
-	/* Assignments for testing*/
-	hInputData[0] = 0x876575346435435346476587565443534; //
-
-	//if adapt to jpeg, fill in input here
-
+	/*Malloc output data*/
 	unsigned long *hOutputData = (unsigned long*)malloc(data_bytes);
 
 	/*Write Key*/
@@ -42,7 +59,6 @@ int main(int argc, char**argv){
 	refKey[2] = hKey[2];
 	refKey[3] = hKey[3];
 
-	int i;
 	for (i = 0; i < data_size; i++){
 		refData[2 * i] = (hInputData[i] >> 32) & 0xFFFFFFFF;
 		refData[2 * i + 1] = hInputData[i] & 0xFFFFFFFF; 
