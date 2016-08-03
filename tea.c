@@ -21,7 +21,7 @@ int main(int argc, char**argv){
 	int file_bytes = ftell(inputFile);
 	num = fseek(inputFile, 0, SEEK_SET); //point to beginning of file
 	
-	int longsInFile = file_bytes/(sizeof(unsigned long)) + 1;
+	int longsInFile = file_bytes/(sizeof(unsigned long));
 
 	/*Declare Constants Based on File*/
 	const int data_size = longsInFile;
@@ -31,14 +31,15 @@ int main(int argc, char**argv){
 	const int key_bytes = key_size * sizeof(int);
 
 	/*Fill Input Data*/
-
 	unsigned long *hInputData = (unsigned long*)malloc(data_bytes);
 	int i;
 	for(i = 0; i < data_size; i++){
-		unsigned long *buf;
+		unsigned long buf[1];
 		fread(buf, sizeof(unsigned long), 1, inputFile);
 		hInputData[i] = *buf;
 	}
+
+	printf("hinput1: %i\n", hInputData[20]);
 
 	/*Malloc output data*/
 	unsigned long *hOutputData = (unsigned long*)malloc(data_bytes);
@@ -108,7 +109,7 @@ int main(int argc, char**argv){
 	check(status);
 
 	/*Initialize output*/
-	int zero = 0;
+	unsigned long zero = 0;
 	status = clEnqueueFillBuffer(cmdQueue, bufOutputData, &zero, sizeof(unsigned long), 0, data_bytes, 0, NULL, NULL);
 	check(status);
 
@@ -156,21 +157,21 @@ int main(int argc, char**argv){
 	check(status);
 
 	/*Check with ref calc*/
-	int mismatch = 0;
-	for (i = 0; i < data_size; i++){
-		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
-		if (hOutputData[i] != refDataC){
-			printf("mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
-			mismatch = 1;
-		}
-	}
+	// int mismatch = 0;
+	// for (i = 0; i < data_size; i++){
+	// 	unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
+	// 	if (hOutputData[i] != refDataC){
+	// 		printf("mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+	// 		mismatch = 1;
+	// 	}
+	// }
 
-	if (mismatch == 0){
-		printf("Encryption Succesful!\n");
-	} else {
-		printf("Encryption Failed, See Above Mismatch\n");
-	}
-	return (0);	
+	// if (mismatch == 0){
+	// 	printf("Encryption Succesful!\n");
+	// } else {
+	// 	printf("Encryption Failed, See Above Mismatch\n");
+	// }
+	// return (0);	
 }
 
 //REFERENCE CALCS TAKEN FROM https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm
