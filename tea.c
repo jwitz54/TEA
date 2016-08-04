@@ -39,8 +39,6 @@ int main(int argc, char**argv){
 		hInputData[i] = *buf;
 	}
 	fclose(inputFile);
-	printf("hinput1: %i\n", hInputData[20]);
-
 	/*Test to see if writing works*/
 	// FILE *testFile;
 	// testFile = fopen("recreatedimg.jpg", "w+");
@@ -60,6 +58,7 @@ int main(int argc, char**argv){
 	hKey[1] = 65645;
 	hKey[2] = 21;
 	hKey[3] = 54543;
+
 
 	/*Perform Reference Calc*/
 	//Copy input data
@@ -88,11 +87,12 @@ int main(int argc, char**argv){
 	cl_device_id device;
 	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &device, NULL); // GPU if on gpu
 	check(status);
-	
-	char buffer[10240];
-	status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, buffer, sizeof(buffer), NULL);
-	check(status);
-	printf("max work: %s \n\n", buffer);
+
+	/*Figure out max group size*/
+	// char buffer[10240];
+	// status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, buffer, sizeof(buffer), NULL);
+	// check(status);
+	// printf("max work: %s \n\n", buffer);
 
 	/*Create Context*/
 	cl_context context;
@@ -177,25 +177,27 @@ int main(int argc, char**argv){
 	for (i = 0; i < data_size; i++){
 		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
 		if (hOutputData[i] != refDataC){
-			if (i < 10){
-				printf("mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+			if (mismatch == 0){
+				printf("First mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
 			}
 			mismatch = 1;
 		}
 	}
 
 	if (mismatch == 0){
-		printf("Encryption Succesful!\n");
+		printf("Encryption Succesful! Writing Encrypted to encrypted.bin\n");
 	} else {
 		printf("Encryption Failed, See Above Mismatch\n");
 	}
-	return (0);	
+	return (0);
+
+
 }
 
-//REFERENCE CALCS TAKEN FROM https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm
+//REFERENCE CALCS TAKEN + MODIFIED FROM https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm
 void encrypt (uint32_t* v, uint32_t* k, int data_size) {
 	int i;
-	for (i = 0; i < data_size/2; i += 2){
+	for (i = 0; i < data_size*2; i += 2){
 	    uint32_t v0=v[i], v1=v[i + 1], sum=0, w;           /* set up */
 	    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
 	    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */
