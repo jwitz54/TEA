@@ -6,7 +6,7 @@
 
 //Fcns for reference calc - see botton
 void encrypt (uint32_t* v, uint32_t* k, int data_size);
-void decrypt (uint32_t* v, uint32_t* k);
+void decrypt (uint32_t* v, uint32_t* k, int data_size);
 
 int main(int argc, char**argv){
 	/*Get file info*/
@@ -39,15 +39,7 @@ int main(int argc, char**argv){
 		hInputData[i] = *buf;
 	}
 	fclose(inputFile);
-	/*Test to see if writing works*/
-	// FILE *testFile;
-	// testFile = fopen("recreatedimg.jpg", "w+");
-	// for(i = 0; i < data_size; i++){
-	// 	unsigned long num[1];
-	// 	num[0] = hInputData[i];
-	// 	fwrite(num, sizeof(unsigned long), 1, testFile);
-	// }
-	// fclose(testFile);
+
 
 	/*Malloc output data*/
 	unsigned long *hOutputData = (unsigned long*)malloc(data_bytes);
@@ -172,7 +164,7 @@ int main(int argc, char**argv){
 	status = clEnqueueReadBuffer(cmdQueue, bufOutputData, CL_TRUE, 0, data_bytes, hOutputData, 0, NULL, NULL);
 	check(status);
 
-	/*Check with ref calc*/
+	/*Check encryption with ref calc*/
 	int mismatch = 0;
 	for (i = 0; i < data_size; i++){
 		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
@@ -186,12 +178,44 @@ int main(int argc, char**argv){
 
 	if (mismatch == 0){
 		printf("Encryption Succesful! Writing Encrypted to encrypted.bin\n");
+		FILE *outFile;
+		outFile = fopen("encrpyted.bin", "w+");
+		for(i = 0; i < data_size; i++){
+			unsigned long num[1];
+			num[0] = hOutputData[i];
+			fwrite(num, sizeof(unsigned long), 1, outFile);
+		}
+		fclose(outFile);
 	} else {
 		printf("Encryption Failed, See Above Mismatch\n");
 	}
+
+	/*Decrypt file file*/
+	uint32_t *refDecryptData = (uint32_t*)malloc(data_bytes * 2); //Use * 2 because splitting into uints
+	for (i = 0; i < data_size; i++){
+		refDecryptData[2 * i] = (hOutputData[i] >> 32) & 0xFFFFFFFF;
+		refDecryptData[2 * i + 1] = hOutputData[i] & 0xFFFFFFFF; 
+	}
+	decrypt(refDecryptData, refKey, data_size);
+
+	/*Check decryption with ref calc*/
+	mismatch = 0;
+	for (i = 0; i < data_size; i++){
+		unsigned long refDecryptDataC = (refDecryptData[2*i] << 32) + refDecryptData[2*i + 1];
+		if (hInputData[i] != refDecryptDataC){
+			if (mismatch == 0){
+				printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+			}
+			mismatch = 1;
+		}
+	}
+	if (mismatch == 0){
+		printf("Decryption Succesful! Writing Encrypted to encrypted.bin\n");
+	} else {
+		printf("Decryption Failed, See Above Mismatch\n");
+	}
+
 	return (0);
-
-
 }
 
 //REFERENCE CALCS TAKEN + MODIFIED FROM https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm
@@ -211,14 +235,17 @@ void encrypt (uint32_t* v, uint32_t* k, int data_size) {
 	}
 }
 
-void decrypt (uint32_t* v, uint32_t* k) {
-    uint32_t v0=v[0], v1=v[1], sum=0xC6EF3720, i;  /* set up */
-    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
-    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */
-    for (i=0; i<32; i++) {                         /* basic cycle start */
-        v1 -= ((v0<<4) + k2) ^ (v0 + sum) ^ ((v0>>5) + k3);
-        v0 -= ((v1<<4) + k0) ^ (v1 + sum) ^ ((v1>>5) + k1);
-        sum -= delta;
-    }                                              /* end cycle */
-    v[0]=v0; v[1]=v1;
+void decrypt (uint32_t* v, uint32_t* k, int data_size) {
+	int i;
+	for (i = 0; i < data_size*2; i += 2){
+	    uint32_t v0=v[i], v1=v[i + 1], sum=0xC6EF3720, i;  /* set up */
+	    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
+	    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */
+	    for (i=0; i<32; i++) {                         /* basic cycle start */
+	        v1 -= ((v0<<4) + k2) ^ (v0 + sum) ^ ((v0>>5) + k3);
+	        v0 -= ((v1<<4) + k0) ^ (v1 + sum) ^ ((v1>>5) + k1);
+	        sum -= delta;
+	    }                                              /* end cycle */
+	    v[i]=v0; v[i + 1]=v1;
+	}
 }
