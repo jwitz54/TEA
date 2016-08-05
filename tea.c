@@ -46,9 +46,9 @@ int main(int argc, char**argv){
 
 	/*Write Key*/
 	int *hKey = (int*)malloc(key_bytes); //may need to be bigger!
-	hKey[0] = 43;
+	hKey[0] = 322324;
 	hKey[1] = 65645;
-	hKey[2] = 21;
+	hKey[2] = 323213;
 	hKey[3] = 54543;
 
 
@@ -168,6 +168,9 @@ int main(int argc, char**argv){
 	int mismatch = 0;
 	for (i = 0; i < data_size; i++){
 		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
+		if(i < 10){
+			//printf("%i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+		}
 		if (hOutputData[i] != refDataC){
 			if (mismatch == 0){
 				printf("First mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
@@ -178,23 +181,26 @@ int main(int argc, char**argv){
 
 	if (mismatch == 0){
 		printf("Encryption Succesful! Writing Encrypted to encrypted.bin\n");
-		FILE *outFile;
-		outFile = fopen("encrpyted.bin", "w+");
-		for(i = 0; i < data_size; i++){
-			unsigned long num[1];
-			num[0] = hOutputData[i];
-			fwrite(num, sizeof(unsigned long), 1, outFile);
-		}
-		fclose(outFile);
+		// FILE *outFile;
+		// outFile = fopen("encrpyted.bin", "w+");
+		// for(i = 0; i < data_size; i++){
+		// 	unsigned long num[1];
+		// 	num[0] = hOutputData[i];
+		// 	fwrite(num, sizeof(unsigned long), 1, outFile);
+		// }
+		// fclose(outFile);
 	} else {
 		printf("Encryption Failed, See Above Mismatch\n");
 	}
 
-	/*Decrypt file file*/
+	/*Decrypt file*/
 	uint32_t *refDecryptData = (uint32_t*)malloc(data_bytes * 2); //Use * 2 because splitting into uints
 	for (i = 0; i < data_size; i++){
 		refDecryptData[2 * i] = (hOutputData[i] >> 32) & 0xFFFFFFFF;
 		refDecryptData[2 * i + 1] = hOutputData[i] & 0xFFFFFFFF; 
+		if (i == 1){
+			printf("OD: %i refDecryptData1: %i , refDD2: %i\n", hOutputData[i], refDecryptData[2 * i], refDecryptData[2 * i + 1]);
+		}
 	}
 	decrypt(refDecryptData, refKey, data_size);
 
@@ -205,10 +211,14 @@ int main(int argc, char**argv){
 		if (hInputData[i] != refDecryptDataC){
 			if (mismatch == 0){
 				printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+				mismatch = 2;
+			} else if (mismatch == 2){
+				printf("Second decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+				mismatch = 1;
 			}
-			mismatch = 1;
+			//mismatch = 1;
 		}
-	}
+	} 
 	if (mismatch == 0){
 		printf("Decryption Succesful! Writing Encrypted to encrypted.bin\n");
 	} else {
@@ -241,7 +251,7 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size) {
 	    uint32_t v0=v[i], v1=v[i + 1], sum=0xC6EF3720, w;  /* set up */
 	    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
 	    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */	
-		if (i == 0){
+		if (i == 0 || i == 2){
 	    	printf("going into ref decryption v0: %i v1: %i k0: %i k1: %i k2: %i..\n", v0, v1, k0, k1, k2);
 	    }
 	    for (w=0; w<32; w++) {                         /* basic cycle start */
