@@ -36,6 +36,6 @@ void tea(__global unsigned long *inputData,
 		z += ((y << 4) + key[2]) ^ (y + sum) ^ ((y >> 5) + key[3]);
 	}
 
-	outputData[gid] = (y << 32) + z;
+	outputData[gid] = ((unsigned long)y << 32) + z;
 
 }

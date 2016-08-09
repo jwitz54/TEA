@@ -186,14 +186,14 @@ int main(int argc, char**argv){
 
 	if (mismatch == 0){
 		printf("Encryption Succesful! Writing Encrypted to encrypted.bin\n");
-		// FILE *outFile;
-		// outFile = fopen("encrpyted.bin", "w+");
-		// for(i = 0; i < data_size; i++){
-		// 	unsigned long num[1];
-		// 	num[0] = hOutputData[i];
-		// 	fwrite(num, sizeof(unsigned long), 1, outFile);
-		// }
-		// fclose(outFile);
+		FILE *outFile;
+		outFile = fopen("encrpyted.bin", "w+");
+		for(i = 0; i < data_size; i++){
+			unsigned long num[1];
+			num[0] = hOutputData[i];
+			fwrite(num, sizeof(unsigned long), 1, outFile);
+		}
+		fclose(outFile);
 	} else {
 		printf("Encryption Failed, See Above Mismatch\n");
 	}
