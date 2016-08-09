@@ -34,12 +34,13 @@ int main(int argc, char**argv){
 	unsigned long *hInputData = (unsigned long*)malloc(data_bytes);
 	int i;
 	for(i = 0; i < data_size; i++){
-		unsigned long buf[1];
-		fread(buf, sizeof(unsigned long), 1, inputFile);
-		hInputData[i] = *buf;
+		unsigned long buf;
+		fread(&buf, sizeof(long), 1, inputFile);
+		hInputData[i] = buf;
 	}
 	fclose(inputFile);
 
+	printf("hin0: %lx\n", (unsigned long)hInputData[0]);
 
 	/*Malloc output data*/
 	unsigned long *hOutputData = (unsigned long*)malloc(data_bytes);
@@ -65,6 +66,9 @@ int main(int argc, char**argv){
 		refData[2 * i] = (hInputData[i] >> 32) & 0xFFFFFFFF;
 		refData[2 * i + 1] = hInputData[i] & 0xFFFFFFFF; 
 	}
+
+	//printf("hinputData1: %i refData2: %i refData3 %i\n", hInputData[1], refData[2], refData[3]);
+
 	encrypt(refData, refKey, data_size);
 
 	/*Status variable for checks*/
@@ -167,13 +171,14 @@ int main(int argc, char**argv){
 	/*Check encryption with ref calc*/
 	int mismatch = 0;
 	for (i = 0; i < data_size; i++){
-		unsigned long refDataC = (refData[2*i] << 32) + refData[2*i + 1];
-		if(i < 10){
-			//printf("%i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+		unsigned long firstData = (unsigned long)refData[2*i] << 32;
+		unsigned long refDataC = firstData + refData[2*i + 1];
+		if(i == 0){
+			printf("henc0: %lx rd1: %lx rd2: %x\n", refDataC, firstData, refData[2*i + 1]);
 		}
 		if (hOutputData[i] != refDataC){
 			if (mismatch == 0){
-				printf("First mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+				//printf("First mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
 			}
 			mismatch = 1;
 		}
@@ -199,7 +204,7 @@ int main(int argc, char**argv){
 		refDecryptData[2 * i] = (hOutputData[i] >> 32) & 0xFFFFFFFF;
 		refDecryptData[2 * i + 1] = hOutputData[i] & 0xFFFFFFFF; 
 		if (i == 1){
-			printf("OD: %i refDecryptData1: %i , refDD2: %i\n", hOutputData[i], refDecryptData[2 * i], refDecryptData[2 * i + 1]);
+			//printf("OD: %i refDecryptData1: %i , refDD2: %i\n", hOutputData[i], refDecryptData[2 * i], refDecryptData[2 * i + 1]);
 		}
 	}
 	decrypt(refDecryptData, refKey, data_size);
@@ -210,19 +215,19 @@ int main(int argc, char**argv){
 		unsigned long refDecryptDataC = (refDecryptData[2*i] << 32) + refDecryptData[2*i + 1];
 		if (hInputData[i] != refDecryptDataC){
 			if (mismatch == 0){
-				printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+				//printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
 				mismatch = 2;
 			} else if (mismatch == 2){
-				printf("Second decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+				//printf("Second decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
 				mismatch = 1;
 			}
 			//mismatch = 1;
 		}
 	} 
 	if (mismatch == 0){
-		printf("Decryption Succesful! Writing Encrypted to encrypted.bin\n");
+		//printf("Decryption Succesful! Writing Encrypted to encrypted.bin\n");
 	} else {
-		printf("Decryption Failed, See Above Mismatch\n");
+		//printf("Decryption Failed, See Above Mismatch\n");
 	}
 
 	return (0);
