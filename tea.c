@@ -212,22 +212,34 @@ int main(int argc, char**argv){
 	/*Check decryption with ref calc*/
 	mismatch = 0;
 	for (i = 0; i < data_size; i++){
-		unsigned long refDecryptDataC = (refDecryptData[2*i] << 32) + refDecryptData[2*i + 1];
+		unsigned long firstDecData = (unsigned long)refDecryptData[2*i] << 32;
+		unsigned long refDecryptDataC = firstDecData + refDecryptData[2*i + 1];
+		if (i == 0) {
+			printf("ref: %lx dec: %lx\n", hInputData[i], refDecryptDataC);
+		}
 		if (hInputData[i] != refDecryptDataC){
 			if (mismatch == 0){
-				//printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+				printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
 				mismatch = 2;
 			} else if (mismatch == 2){
-				//printf("Second decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
+				printf("Second decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
 				mismatch = 1;
 			}
 			//mismatch = 1;
 		}
 	} 
 	if (mismatch == 0){
-		//printf("Decryption Succesful! Writing Encrypted to encrypted.bin\n");
+		printf("Decryption Succesful! Writing Decrypted to decrypted.jpg\n");
+		FILE *outDecFile;
+		outDecFile = fopen("decrypted.jpg", "w+");
+		for(i = 0; i < data_size; i++){
+			unsigned long num[1];
+			num[0] = hOutputData[i];
+			fwrite(num, sizeof(unsigned long), 1, outDecFile);
+		}
+		fclose(outDecFile);
 	} else {
-		//printf("Decryption Failed, See Above Mismatch\n");
+		printf("Decryption Failed, See Above Mismatch\n");
 	}
 
 	return (0);
@@ -256,9 +268,9 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size) {
 	    uint32_t v0=v[i], v1=v[i + 1], sum=0xC6EF3720, w;  /* set up */
 	    uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
 	    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */	
-		if (i == 0 || i == 2){
-	    	printf("going into ref decryption v0: %i v1: %i k0: %i k1: %i k2: %i..\n", v0, v1, k0, k1, k2);
-	    }
+		//if (i == 0 || i == 2){
+	    	//printf("going into ref decryption v0: %i v1: %i k0: %i k1: %i k2: %i..\n", v0, v1, k0, k1, k2);
+	    //}
 	    for (w=0; w<32; w++) {                         /* basic cycle start */
 	        v1 -= ((v0<<4) + k2) ^ (v0 + sum) ^ ((v0>>5) + k3);
 	        v0 -= ((v1<<4) + k0) ^ (v1 + sum) ^ ((v1>>5) + k1);
