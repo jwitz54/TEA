@@ -12,11 +12,11 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size);
 	1. Occupancy - first step is find specifics on target (AMD Radeon R7 M260)
 		-NOTE - for loop may make wavefront divergence?
 		-Vectors
-		-Wavefront/Comput unit
+		-Wavefront/Compute unit
 		-Run profiling OpenCL
 	2. Memory
 		-shmem
-		-badwidth (8.3)
+		-badwidth (8.3) - profiling 
 
 
 int main(int argc, char**argv){
