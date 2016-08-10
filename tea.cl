@@ -3,6 +3,8 @@ void tea(__global unsigned long *inputData,
 		 __global unsigned long *outputData,
 		 __global unsigned int  *key) {
 
+	//TODO: shmem
+
 	int gid = get_global_id(0);
 	int gsize = get_global_size(0);
 	

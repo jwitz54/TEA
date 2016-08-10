@@ -8,6 +8,17 @@
 void encrypt (uint32_t* v, uint32_t* k, int data_size);
 void decrypt (uint32_t* v, uint32_t* k, int data_size);
 
+/* Optimizations to make:
+	1. Occupancy - first step is find specifics on target (AMD Radeon R7 M260)
+		-NOTE - for loop may make wavefront divergence?
+		-Vectors
+		-Wavefront/Comput unit
+		-Run profiling OpenCL
+	2. Memory
+		-shmem
+		-badwidth (8.3)
+
+
 int main(int argc, char**argv){
 	/*Get file info*/
 	FILE *inputFile;
