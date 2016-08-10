@@ -16,7 +16,7 @@ void tea(__global unsigned long *inputData,
 	// lmem[lid] = input[gid];
 
 	//barrier(CLK_LOCAL_MEM_FENCE);
-	//if (gid % 2 == 0){ // very inefficient - half threads doing nothing
+	//if (gid % 2 == 0){ // very inefficient - half threads doing nothing f
 
 	unsigned int threadData[2];
 	threadData[0] = (inputData[gid] >> 32) & 0xFFFFFFFF;

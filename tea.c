@@ -178,7 +178,7 @@ int main(int argc, char**argv){
 		}
 		if (hOutputData[i] != refDataC){
 			if (mismatch == 0){
-				//printf("First mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i]);
+				//printf("First mismatch at %i, ref: %lu calc %lu\n", i, refDataC, hOutputData[i] );
 			}
 			mismatch = 1;
 		}
