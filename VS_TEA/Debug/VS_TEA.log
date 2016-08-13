@@ -1,0 +1,14 @@
+﻿  tea.c
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'J': unrecognized character escape sequence
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'D': unrecognized character escape sequence
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'P': unrecognized character escape sequence
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'O': unrecognized character escape sequence
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'T': unrecognized character escape sequence
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'j': unrecognized character escape sequence
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(77): warning C4293: '>>': shift count negative or too big, undefined behavior
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(144): warning C4013: 'strlen' undefined; assuming extern returning int
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(185): warning C4293: '<<': shift count negative or too big, undefined behavior
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(215): warning C4293: '>>': shift count negative or too big, undefined behavior
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(226): warning C4293: '<<': shift count negative or too big, undefined behavior
+  VS_TEA.vcxproj -> C:\Users\Jeffrey\Documents\Programming\OpenCL\TEA\VS_TEA\Debug\VS_TEA.exe
+  VS_TEA.vcxproj -> C:\Users\Jeffrey\Documents\Programming\OpenCL\TEA\VS_TEA\Debug\VS_TEA.pdb (Full PDB)

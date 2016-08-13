@@ -17,12 +17,12 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size);
 	2. Memory
 		-shmem
 		-badwidth (8.3) - profiling 
-
+*/
 
 int main(int argc, char**argv){
 	/*Get file info*/
 	FILE *inputFile;
-	inputFile = fopen("jpeg-pic.jpg", "r+");
+	inputFile = fopen("C:\Users\Jeffrey\Documents\Programming\OpenCL\TEA\jpeg-pic", "r+");
 	if (inputFile == NULL){
 		printf("Error: Could not open file\n");
 		fclose(inputFile);
