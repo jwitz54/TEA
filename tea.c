@@ -16,13 +16,18 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size);
 		-Run profiling OpenCL
 	2. Memory
 		-shmem
-		-badwidth (8.3) - profiling 
+		-badwidth (8.3) - profiling
+
+	DEVICE INFO
+		-Max WG Size: 256
+		- 
 */
+
 
 int main(int argc, char**argv){
 	/*Get file info*/
 	FILE *inputFile;
-	inputFile = fopen("C:\Users\Jeffrey\Documents\Programming\OpenCL\TEA\jpeg-pic", "r+");
+	inputFile = fopen("C:/Users/Jeffrey/Documents/Programming/OpenCL/TEA/jpeg-pic.jpg", "r+");
 	if (inputFile == NULL){
 		printf("Error: Could not open file\n");
 		fclose(inputFile);
@@ -86,21 +91,78 @@ int main(int argc, char**argv){
 	cl_int status;
 
 	/*Find Platforms*/
+	cl_device_id platforms[32];
 	cl_platform_id platform;
-	status = clGetPlatformIDs(1, &platform, NULL);
-	check(status);
+	cl_uint num_platforms;
+	status = clGetPlatformIDs(32, &platforms, &num_platforms);
+
+	/*assign it DEPENDS ON CIRCUMSTANCES*/
+	platform = platforms[1];
 
 	/*Find Device*/
 	cl_device_id device;
-	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &device, NULL); // GPU if on gpu
+	cl_int device_num;
+	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, &device_num);
 	check(status);
+
+	printf("DN %i\n", device_num);
 
 	/*Figure out max group size*/
 	// char buffer[10240];
 	// status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, buffer, sizeof(buffer), NULL);
 	// check(status);
 	// printf("max work: %s \n\n", buffer);
+	//Get platform info
+	//cl_device_id platforms[32];
+	//cl_uint num_platforms;
+	//status = clGetPlatformIDs(32, &platforms, &num_platforms);
+	//printf("Number of platforms: %u\n\n", num_platforms);
+	//int k;
+	//for (k = 0; k < num_platforms; k++) {
+		//char platformName[1024];
+		//clGetPlatformInfo(platforms[k], CL_PLATFORM_NAME, sizeof(platformName), platformName, NULL);
+		//printf("Platform: %s\n", platformName);
+	//}
 
+	//To get device info
+	// cl_device_id devices[32];
+	// cl_uint num_devices;
+	// status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 32, &devices, &num_devices);
+	//printf("Number of devices: %u\n\n", num_devices);
+
+	char deviceName[1024];				//this string will hold the devices name
+	cl_uint numberOfCores;				//this variable holds the number of cores of on a device
+	cl_long amountOfMemory;				//this variable holds the amount of memory on a device
+	cl_uint clockFreq;				//this variable holds the clock frequency of a device
+	cl_ulong maxAlocatableMem;			//this variable holds the maximum allocatable memory
+	cl_ulong localMem;				//this variable holds local memory for a device
+	cl_bool	available;				//this variable holds if the device is available
+	char vendor[1024];
+	size_t workGroupSize;
+
+	//scan in device information
+	clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(deviceName), deviceName, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_VENDOR, sizeof(vendor), vendor, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(numberOfCores), &numberOfCores, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(amountOfMemory), &amountOfMemory, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(clockFreq), &clockFreq, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxAlocatableMem), &maxAlocatableMem, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_AVAILABLE, sizeof(available), &available, NULL);
+	clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(workGroupSize), &workGroupSize, NULL);
+	
+	//print out device information
+	printf("\t\tDevice Name:\t\t\t\t%s\n", deviceName);
+	printf("\t\tVendor:\t\t\t\t%s\n", vendor);
+	printf("\t\tAvailable:\t\t\t%s\n", available ? "Yes" : "No");
+	printf("\t\tCompute Units:\t\t\t%u\n", numberOfCores);
+	printf("\t\tClock Frequency:\t\t%u mHz\n", clockFreq);
+	printf("\t\tGlobal Memory:\t\t\t%0.00f mb\n", (double)amountOfMemory / 1048576);
+	printf("\t\tMax Allocateable Memory:\t%0.00f mb\n", (double)maxAlocatableMem / 1048576);
+	printf("\t\tLocal Memory:\t\t\t%u kb\n\n", (unsigned int)localMem);
+	printf("\t\tMax WG Size:\t\t\t%u kb\n\n", workGroupSize);
+
+	system("pause");
 	/*Create Context*/
 	cl_context context;
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, &status);

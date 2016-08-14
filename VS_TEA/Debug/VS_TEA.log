@@ -1,14 +1,11 @@
 ﻿  tea.c
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'J': unrecognized character escape sequence
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'D': unrecognized character escape sequence
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'P': unrecognized character escape sequence
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'O': unrecognized character escape sequence
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'T': unrecognized character escape sequence
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(25): warning C4129: 'j': unrecognized character escape sequence
 c:\users\jeffrey\documents\programming\opencl\tea\tea.c(77): warning C4293: '>>': shift count negative or too big, undefined behavior
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(144): warning C4013: 'strlen' undefined; assuming extern returning int
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(185): warning C4293: '<<': shift count negative or too big, undefined behavior
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(215): warning C4293: '>>': shift count negative or too big, undefined behavior
-c:\users\jeffrey\documents\programming\opencl\tea\tea.c(226): warning C4293: '<<': shift count negative or too big, undefined behavior
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(92): warning C4047: 'function': 'cl_platform_id *' differs in levels of indirection from 'cl_device_id (*)[32]'
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(92): warning C4024: 'clGetPlatformIDs': different types for formal and actual parameter 2
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(95): warning C4133: '=': incompatible types - from 'cl_device_id' to 'cl_platform_id'
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(201): warning C4013: 'strlen' undefined; assuming extern returning int
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(242): warning C4293: '<<': shift count negative or too big, undefined behavior
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(272): warning C4293: '>>': shift count negative or too big, undefined behavior
+c:\users\jeffrey\documents\programming\opencl\tea\tea.c(283): warning C4293: '<<': shift count negative or too big, undefined behavior
   VS_TEA.vcxproj -> C:\Users\Jeffrey\Documents\Programming\OpenCL\TEA\VS_TEA\Debug\VS_TEA.exe
   VS_TEA.vcxproj -> C:\Users\Jeffrey\Documents\Programming\OpenCL\TEA\VS_TEA\Debug\VS_TEA.pdb (Full PDB)
