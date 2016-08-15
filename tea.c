@@ -8,6 +8,9 @@
 void encrypt (uint32_t* v, uint32_t* k, int data_size);
 void decrypt (uint32_t* v, uint32_t* k, int data_size);
 
+//For getting source
+char *getKernelSource(char *filename);
+
 /* Optimizations to make:
 	1. Occupancy - first step is find specifics on target (AMD Radeon R7 M260)
 		-NOTE - for loop may make wavefront divergence?
@@ -22,7 +25,6 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size);
 		-Max WG Size: 256
 		- 
 */
-
 
 int main(int argc, char**argv){
 	/*Get file info*/
@@ -82,16 +84,13 @@ int main(int argc, char**argv){
 		refData[2 * i] = (hInputData[i] >> 32) & 0xFFFFFFFF;
 		refData[2 * i + 1] = hInputData[i] & 0xFFFFFFFF; 
 	}
-
-	//printf("hinputData1: %i refData2: %i refData3 %i\n", hInputData[1], refData[2], refData[3]);
-
 	encrypt(refData, refKey, data_size);
 
 	/*Status variable for checks*/
 	cl_int status;
 
 	/*Find Platforms*/
-	cl_device_id platforms[32];
+	cl_platform_id platforms[32];
 	cl_platform_id platform;
 	cl_uint num_platforms;
 	status = clGetPlatformIDs(32, &platforms, &num_platforms);
@@ -104,8 +103,6 @@ int main(int argc, char**argv){
 	cl_int device_num;
 	status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, &device_num);
 	check(status);
-
-	printf("DN %i\n", device_num);
 
 	/*Figure out max group size*/
 	// char buffer[10240];
@@ -124,7 +121,7 @@ int main(int argc, char**argv){
 		//printf("Platform: %s\n", platformName);
 	//}
 
-	//To get device info
+	/*Device Info*/
 	// cl_device_id devices[32];
 	// cl_uint num_devices;
 	// status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 32, &devices, &num_devices);
@@ -160,9 +157,10 @@ int main(int argc, char**argv){
 	printf("\t\tGlobal Memory:\t\t\t%0.00f mb\n", (double)amountOfMemory / 1048576);
 	printf("\t\tMax Allocateable Memory:\t%0.00f mb\n", (double)maxAlocatableMem / 1048576);
 	printf("\t\tLocal Memory:\t\t\t%u kb\n\n", (unsigned int)localMem);
-	printf("\t\tMax WG Size:\t\t\t%u kb\n\n", workGroupSize);
+	printf("\t\tMax WG Size:\t\t\t%u \n\n", workGroupSize);
 
-	system("pause");
+	//system("pause");
+
 	/*Create Context*/
 	cl_context context;
 	context = clCreateContext(NULL, 1, &device, NULL, NULL, &status);
@@ -202,7 +200,7 @@ int main(int argc, char**argv){
 	check(status);
 
 	/*Create Prog*/
-	char *programSource = readFile("tea.cl");
+	char *programSource = getKernelSource("C:/Users/Jeffrey/Documents/Programming/OpenCL/TEA/tea.cl");
 	size_t programSourceLen = strlen(programSource);
 	cl_program program = clCreateProgramWithSource(context, 1, (const char**)&programSource, &programSourceLen, &status);
 	check(status);
@@ -293,12 +291,8 @@ int main(int argc, char**argv){
 		if (hInputData[i] != refDecryptDataC){
 			if (mismatch == 0){
 				printf("First decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
-				mismatch = 2;
-			} else if (mismatch == 2){
-				printf("Second decrypt mismatch at %i, ref: %lu calc %lu\n", i, refDecryptDataC, hInputData[i]);
-				mismatch = 1;
-			}
-			//mismatch = 1;
+				mismatch =1;
+			} 
 		}
 	} 
 	if (mismatch == 0){
@@ -314,6 +308,19 @@ int main(int argc, char**argv){
 	} else {
 		printf("Decryption Failed, See Above Mismatch\n");
 	}
+
+	/*Free OpenCL Resources*/
+	clReleaseKernel(kernel);
+	clReleaseProgram(program);
+	clReleaseCommandQueue(cmdQueue);
+	clReleaseMemObject(bufInputData);
+	clReleaseMemObject(bufOutputData);
+	clReleaseMemObject(bufKey);
+	clReleaseContext(context);
+
+	/*Free Host Resources (ill do this later)*/
+
+	system("pause");
 
 	return (0);
 }
@@ -351,4 +358,28 @@ void decrypt (uint32_t* v, uint32_t* k, int data_size) {
 	    }                                              /* end cycle */
 	    v[i]=v0; v[i + 1]=v1;
 	}
+}
+
+//TAKEN FROM https://github.com/HandsOnOpenCL/Exercises-Solutions/blob/master/Solutions/Exercise13/C/gameoflife.c
+char *getKernelSource(char *filename)
+{
+	FILE *file = fopen(filename, "r");
+	if (!file)
+	{
+		fprintf(stderr, "Error: Could not open kernel source file\n");
+		exit(EXIT_FAILURE);
+	}
+	fseek(file, 0, SEEK_END);
+	int len = ftell(file) + 1;
+	rewind(file);
+
+	char *source = (char *)calloc(sizeof(char), len);
+	if (!source)
+	{
+		fprintf(stderr, "Error: Could not allocate memory for source string\n");
+		exit(EXIT_FAILURE);
+	}
+	fread(source, sizeof(char), len, file);
+	fclose(file);
+	return source;
 }
